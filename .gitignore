@@ -17,3 +17,4 @@ env.bak/
 venv.bak/
 
 .tv_datafeed
+exported_files
