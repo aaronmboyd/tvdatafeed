@@ -3,3 +3,5 @@ pandas~=1.0.5
 selenium~=3.141.0
 websocket-client~=0.57.0
 chromedriver-autoinstaller
+matplotlib
+mplfinance
