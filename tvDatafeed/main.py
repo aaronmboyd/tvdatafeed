@@ -17,7 +17,6 @@ from websocket import create_connection
 
 logger = logging.getLogger(__name__)
 
-
 class Interval(enum.Enum):
     in_1_minute = "1"
     in_3_minute = "3"
@@ -32,10 +31,8 @@ class Interval(enum.Enum):
     in_daily = "1D"
     in_weekly = "1W"
     in_monthly = "1M"
-
-
 class TvDatafeed:
-    path = os.path.join(os.path.expanduser("~"), ".tv_datafeed/")
+    path = os.path.join(os.path.curdir, ".tv_datafeed/")
     headers = json.dumps({"Origin": "https://data.tradingview.com"})
 
     def __save_token(self, token):
@@ -125,7 +122,7 @@ class TvDatafeed:
         logger.info("cache cleared")
 
     def __init__(
-        self, username=None, password=None, chromedriver_path=None, auto_login=True
+        self, username=None, password=None, chromedriver_path="/home/boyd/Downloads/chromedriver_linux64/chromedriver", auto_login=True
     ) -> None:
         self.__automatic_login = auto_login
         self.chromedriver_path = chromedriver_path
@@ -234,6 +231,8 @@ class TvDatafeed:
         options.add_argument("--disable-gpu")
         options.add_argument(f"user-data-dir={self.profile_dir}")
 
+        driver = None
+
         try:
             if not self.__automatic_login:
                 print(
@@ -257,8 +256,36 @@ class TvDatafeed:
             return driver
 
         except Exception as e:
-            driver.quit()
+            if driver is not None:
+                driver.quit()
             logger.error(e)
+
+    def read_and_export(self, filename="assets.txt", interval=Interval.in_1_hour, number_ticks=10000) -> None:
+        
+        fullPathToFile = os.path.join(os.path.curdir, filename)
+    
+        logger.debug("Opening assets file " + fullPathToFile)
+        f = open(fullPathToFile, "r")
+
+        while(True):            
+            line = f.readline().strip()
+            if not line:
+                break
+
+            logger.debug("Collecting data for " + line)
+            
+            dataParts = line.split(":");
+            exchange = dataParts[0]
+            pair = dataParts[1]
+
+            data = self.get_hist(pair,exchange,interval,number_ticks)    
+            
+            logger.debug("Exporting " + line)
+            exportedFilename = os.path.join(os.path.abspath(os.path.curdir), "exported_files", exchange + "_" + pair + "_" + str(interval) + "_" + str(number_ticks) + "_ticks" + ".csv")
+            data.to_csv(exportedFilename)          
+        
+        f.close
+        logger.debug("Closed file " + fullPathToFile)
 
     @staticmethod
     def __get_token(driver: webdriver.Chrome):
@@ -486,6 +513,6 @@ if __name__ == "__main__":
         # password,
         auto_login=False,
     )
-    print(tv.get_hist("CRUDEOIL", "MCX", fut_contract=1))
-    print(tv.get_hist("NIFTY", "NSE", fut_contract=1))
-    print(tv.get_hist("TCS", "NSE"))
+    # print(tv.get_hist("CRUDEOIL", "MCX", fut_contract=1))
+    # print(tv.get_hist("NIFTY", "NSE", fut_contract=1))
+    # print(tv.get_hist("TCS", "NSE"))
