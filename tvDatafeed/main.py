@@ -122,7 +122,7 @@ class TvDatafeed:
         logger.info("cache cleared")
 
     def __init__(
-        self, username=None, password=None, chromedriver_path="/home/boyd/Downloads/chromedriver_linux64/chromedriver", auto_login=True
+        self, username=None, password=None, chromedriver_path=None, auto_login=True
     ) -> None:
         self.__automatic_login = auto_login
         self.chromedriver_path = chromedriver_path
